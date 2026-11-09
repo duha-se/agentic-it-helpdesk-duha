@@ -1,0 +1,15 @@
+# The chat UI (Gradio, port 7860). It is the kit's ui/app_ui.py, unchanged: it only talks to our agent API.
+FROM python:3.12-slim
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1
+
+WORKDIR /app
+
+# Same pins as requirements.txt, only what the UI needs.
+RUN pip install --no-cache-dir gradio==6.30.0 httpx==0.28.1
+
+COPY ui/app_ui.py /app/app_ui.py
+
+EXPOSE 7860
+CMD ["python", "app_ui.py"]

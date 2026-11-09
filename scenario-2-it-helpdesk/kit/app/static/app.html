@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="en" data-theme="palm">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Nakhla IT Helpdesk</title>
+<link rel="stylesheet" href="/static/style.css">
+<script>try{const t=localStorage.getItem("nakhla-theme");if(t)document.documentElement.dataset.theme=t;}catch(e){}</script>
+</head>
+<body>
+<div class="scrim" id="scrim"></div>
+<div class="shell">
+  <!-- sidebar -->
+  <aside class="sidebar" id="sidebar" aria-label="Conversations">
+    <div class="side-top">
+      <div class="brand">
+        <div class="logo" style="font-family:serif;font-size:1.3rem">N</div>
+        <span>Nakhla IT</span>
+      </div>
+      <button class="btn new" id="newChat" type="button">
+        <svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+        New chat
+      </button>
+    </div>
+    <nav class="convs" id="convs" aria-label="Past chats"></nav>
+    <div class="side-bottom">
+      <div class="side-actions">
+        <div class="palette">
+          <button data-theme-pick="palm" aria-label="Palm Brown" aria-pressed="true"></button>
+          <button data-theme-pick="leaf" aria-label="Palm Leaf" aria-pressed="false"></button>
+        </div>
+        <button class="icon-btn" id="logoutBtn" aria-label="Sign out" title="Sign out">
+          <svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4H5v16h4"/><path d="M16 8l4 4-4 4M20 12H9"/></svg>
+        </button>
+      </div>
+      <div class="me" id="me">
+        <div class="avatar" id="initials">?</div>
+        <div><b id="myName">…</b><small id="myEmail">Loading…</small></div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- main area -->
+  <div class="main" id="main">
+    <header class="topbar">
+      <button class="icon-btn mobile-only" id="menuBtn" aria-label="Open menu" aria-expanded="false" aria-controls="sidebar">
+        <svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+      </button>
+      <div>
+        <h2 id="chatTitle">New chat</h2>
+        <small id="chatState" class="muted"></small>
+      </div>
+    </header>
+
+    <!-- message area -->
+    <div class="messages" id="messages" role="log" aria-live="polite">
+      <div class="welcome" id="welcome">
+        <div class="big">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 21V10"/><path d="M12 10C10 6 6 5 3 6c3 0 5 1.5 6 4"/>
+            <path d="M12 10c2-4 6-5 9-4-3 0-5 1.5-6 4"/>
+            <path d="M12 10C11 6 11 4 12 2c1 2 1 4 0 8"/>
+          </svg>
+        </div>
+        <h1>Hi there! How can I help?</h1>
+        <p>Ask me about VPN, passwords, devices, software or any IT issue at Nakhla Systems.</p>
+        <div class="suggest">
+          <button type="button" data-msg="My NakhlaConnect VPN shows NX-112 since this morning.">
+            <b>VPN</b>NakhlaConnect shows NX-112
+          </button>
+          <button type="button" data-msg="NakhlaID says NID-423 when I try to sign in. What should I do?">
+            <b>Sign-in</b>Account locked (NID-423)
+          </button>
+          <button type="button" data-msg="Software Center fails with SWC-2001 when I install NakhlaCode Studio.">
+            <b>Software</b>SWC-2001 install error
+          </button>
+          <button type="button" data-msg="My Nakhla Dock D3 does not detect my monitors.">
+            <b>Hardware</b>Dock D3 / monitors
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- composer -->
+    <div class="composer">
+      <div class="box">
+        <textarea id="input" rows="1" placeholder="Describe your IT problem, e.g. NakhlaConnect shows NX-781…"
+          aria-label="Message" maxlength="8000"></textarea>
+        <button class="send" id="send" disabled aria-label="Send" type="button">
+          <svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+<script src="/static/common.js"></script>
+<script src="/static/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="en" data-theme="palm">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Nakhla IT Helpdesk · Sign in</title>
+<link rel="stylesheet" href="/static/style.css">
+<script>
+try { const t = localStorage.getItem("nakhla-theme"); if (t) document.documentElement.dataset.theme = t; } catch (e) {}
+</script>
+</head>
+<body>
+<div class="login-shell" role="main">
+  <!-- left: illustrated hero panel -->
+  <div class="hero" aria-hidden="true">
+    <div class="top">
+      <div class="brand">
+        <div class="logo" style="font-family:serif;font-size:1.3rem">N</div>
+        <span>Nakhla Systems</span>
+      </div>
+      <div class="palette">
+        <button data-theme-pick="palm" aria-label="Palm Brown palette" aria-pressed="true"></button>
+        <button data-theme-pick="leaf" aria-label="Palm Leaf palette" aria-pressed="false"></button>
+      </div>
+    </div>
+    <svg class="art" style="z-index:0" viewBox="0 0 600 800" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <radialGradient id="glow" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="rgba(255,255,255,.09)"/><stop offset="100%" stop-color="rgba(0,0,0,0)"/></radialGradient>
+        <filter id="blur2"><feGaussianBlur stdDeviation="2"/></filter>
+      </defs>
+      <ellipse cx="300" cy="400" rx="340" ry="340" fill="url(#glow)"/>
+      <!-- palm trunk -->
+      <path d="M310 760 Q308 650 312 540 Q315 450 308 380" stroke="rgba(255,255,255,.25)" stroke-width="10" fill="none" stroke-linecap="round"/>
+      <!-- fronds group 1 -->
+      <g class="fronds" opacity=".8">
+        <path d="M308 380 Q260 310 180 290" stroke="rgba(255,255,255,.55)" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+        <path d="M308 380 Q250 340 210 300" stroke="rgba(255,255,255,.4)" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+        <path d="M308 380 Q290 310 270 260" stroke="rgba(255,255,255,.45)" stroke-width="3" fill="none" stroke-linecap="round"/>
+        <path d="M308 380 Q320 300 340 250" stroke="rgba(255,255,255,.42)" stroke-width="2.8" fill="none" stroke-linecap="round"/>
+        <path d="M308 380 Q360 320 420 290" stroke="rgba(255,255,255,.5)" stroke-width="3.2" fill="none" stroke-linecap="round"/>
+        <path d="M308 380 Q370 350 440 335" stroke="rgba(255,255,255,.38)" stroke-width="2.4" fill="none" stroke-linecap="round"/>
+      </g>
+      <!-- fronds group 2 -->
+      <g class="fronds slow" opacity=".55">
+        <path d="M308 420 Q240 370 160 370" stroke="rgba(255,255,255,.35)" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+        <path d="M308 420 Q360 365 450 350" stroke="rgba(255,255,255,.3)" stroke-width="2.2" fill="none" stroke-linecap="round"/>
+        <path d="M308 420 Q310 350 308 280" stroke="rgba(255,255,255,.28)" stroke-width="2" fill="none" stroke-linecap="round"/>
+      </g>
+      <!-- decorative circles -->
+      <circle cx="180" cy="288" r="3" fill="rgba(255,255,255,.5)"/>
+      <circle cx="420" cy="288" r="3" fill="rgba(255,255,255,.5)"/>
+      <circle cx="270" cy="258" r="2.5" fill="rgba(255,255,255,.45)"/>
+      <circle cx="340" cy="248" r="2.5" fill="rgba(255,255,255,.45)"/>
+      <!-- dots -->
+      <circle cx="80" cy="160" r="55" fill="rgba(255,255,255,.04)"/>
+      <circle cx="530" cy="680" r="80" fill="rgba(255,255,255,.04)"/>
+      <circle cx="50" cy="680" r="36" fill="rgba(255,255,255,.05)"/>
+      <!-- horizon line -->
+      <line x1="60" y1="710" x2="540" y2="710" stroke="rgba(255,255,255,.15)" stroke-width="1.5" stroke-dasharray="4 8"/>
+    </svg>
+    <div class="copy" style="position:relative;z-index:1">
+      <h2>Your IT questions, answered in seconds</h2>
+      <p>Instant answers from the knowledge base, smart ticket drafts, and approval gates that keep humans in control.</p>
+    </div>
+  </div>
+
+  <!-- right: the form -->
+  <div class="login-side">
+    <div class="palette" style="z-index:2">
+      <button data-theme-pick="palm" aria-label="Palm Brown" aria-pressed="true"></button>
+      <button data-theme-pick="leaf" aria-label="Palm Leaf" aria-pressed="false"></button>
+    </div>
+    <div class="login-card" id="card" role="main">
+      <div class="brand"><div class="logo" style="font-family:serif;font-size:1.4rem">N</div><span>Nakhla IT</span></div>
+      <h1>Welcome back</h1>
+      <p class="sub">Sign in to your work account</p>
+      <div id="error" class="error" hidden role="alert"></div>
+      <form id="form" novalidate>
+        <label class="field" for="email"><span>Work email</span>
+          <input id="email" type="email" name="email" autocomplete="email" required placeholder="name.surname@nakhla.example">
+        </label>
+        <label class="field" for="password"><span>Password</span>
+          <div class="pw">
+            <input id="password" type="password" name="password" autocomplete="current-password" required placeholder="Your password">
+            <button type="button" class="icon-btn" id="togglePw" aria-label="Show password">
+              <svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" id="eyeIcon"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>
+            </button>
+          </div>
+        </label>
+        <button class="btn primary" type="submit" id="submit">Sign in</button>
+      </form>
+
+      <!-- <div class="demo" id="demoSection" hidden>
+        <p>Quick sign-in (demo mode)</p>
+        <div class="chips" id="chips"></div>
+        <small class="hint">Password for all accounts: shown on hover. Change in <code>.env</code>.</small>
+      </div> -->
+      <p class="foot">Nakhla Systems IT · fictional training environment</p>
+    </div>
+  </div>
+</div>
+<script src="/static/common.js"></script>
+<script src="/static/login.js"></script>
+</body>
+</html>

@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="en" data-theme="palm">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Nakhla IT · Admin</title>
+<link rel="stylesheet" href="/static/style.css">
+<script>try{const t=localStorage.getItem("nakhla-theme");if(t)document.documentElement.dataset.theme=t;}catch(e){}</script>
+</head>
+<body class="admin">
+<div class="admin-top">
+  <div class="brand">
+    <div class="logo" style="font-family:serif;font-size:1.3rem">N</div>
+    <span>Nakhla IT Admin</span>
+  </div>
+  <div class="right">
+    <div class="palette">
+      <button data-theme-pick="palm" aria-label="Palm Brown" aria-pressed="true"></button>
+      <button data-theme-pick="leaf" aria-label="Palm Leaf" aria-pressed="false"></button>
+    </div>
+    <span class="badge" id="adminName">Admin</span>
+    <button class="btn ghost" id="logoutBtn" type="button" style="color:var(--cream);border-color:rgba(240,237,231,.5)">Sign out</button>
+  </div>
+</div>
+
+<div class="admin-main">
+  <h1>Overview</h1>
+  <p class="lead" id="lead">Loading…</p>
+
+  <!-- stat cards -->
+  <div class="stats" id="stats"></div>
+
+  <!-- tabs -->
+  <div class="tabs" role="tablist">
+    <button role="tab" aria-selected="true"  data-tab="tickets" type="button">Tickets</button>
+    <button role="tab" aria-selected="false" data-tab="chat"    type="button">Chat</button>
+    <button role="tab" aria-selected="false" data-tab="users"   type="button">Accounts</button>
+    <button role="tab" aria-selected="false" data-tab="audit"   type="button">Audit log</button>
+  </div>
+
+  <!-- tickets panel -->
+  <div id="tab-tickets">
+    <div class="toolbar">
+      <input type="search" id="ticketSearch" placeholder="Search tickets…" aria-label="Search tickets">
+      <button class="btn ghost" id="refreshBtn" type="button">↻ Refresh</button>
+    </div>
+    <div class="tablewrap"><table id="ticketTable">
+      <thead><tr>
+        <th>ID</th><th>Priority</th><th>Status</th><th>Category</th><th>Requester</th><th>Team</th><th>Subject</th><th>Created</th>
+      </tr></thead>
+      <tbody id="ticketBody"></tbody>
+    </table></div>
+  </div>
+
+  <!-- admin chat panel -->
+  <div id="tab-chat" hidden>
+    <div class="admin-chat">
+      <div class="admin-chat-sidebar" id="adminConvList">
+        <button class="btn new" id="adminNewChat" type="button" style="width:100%;margin-bottom:.7rem">
+          <svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+          New chat
+        </button>
+        <div id="adminConvs"></div>
+      </div>
+      <div class="admin-chat-main">
+        <div class="messages" id="adminMessages" role="log" aria-live="polite" style="flex:1;overflow:auto;padding:1rem 1.5rem">
+          <p style="color:var(--muted);text-align:center;margin-top:3rem">Select a conversation or start a new one.<br>As admin you can read all employees' chats and query all tickets.</p>
+        </div>
+        <div class="composer" style="padding:.7rem 1rem .9rem">
+          <div class="box" style="max-width:100%">
+            <textarea id="adminInput" rows="1" placeholder="Ask about tickets, users, or test the helpdesk…" aria-label="Admin message" maxlength="8000"></textarea>
+            <button class="send" id="adminSend" disabled aria-label="Send" type="button">
+              <svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- users panel -->
+  <div id="tab-users" hidden>
+    <div class="tablewrap"><table>
+      <thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Chats</th></tr></thead>
+      <tbody id="userBody"></tbody>
+    </table></div>
+  </div>
+
+  <!-- audit log panel -->
+  <div id="tab-audit" hidden>
+    <div class="tablewrap"><table>
+      <thead><tr><th>Time</th><th>Event</th><th>Session</th><th>Detail</th></tr></thead>
+      <tbody id="auditBody"></tbody>
+    </table></div>
+  </div>
+</div>
+
+<script src="/static/common.js"></script>
+<script src="/static/admin.js"></script>
+</body>
+</html>
