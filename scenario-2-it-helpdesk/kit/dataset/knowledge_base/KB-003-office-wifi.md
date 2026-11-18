@@ -14,7 +14,7 @@ error_codes: [WLAN-17]
 
 # KB-003 — Office Wi-Fi: networks and troubleshooting
 
-Covers Jerusalem HQ (floors 1-4) and the Bethlehem office (floors 1-2).
+Covers Jerusalem HQ (floors 1-4) and the Ramallah office (floors 1-2).
 
 ## The three networks
 

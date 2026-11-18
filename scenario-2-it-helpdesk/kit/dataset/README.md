@@ -1,7 +1,7 @@
 # Nakhla Systems IT support dataset
 
 Knowledge base, ticket archive and conventions of **Nakhla Systems**, a fictional ~400-person
-software company with offices in Jerusalem (HQ) and Bethlehem. Everything here is invented for
+software company with offices in Jerusalem (HQ) and Ramallah. Everything here is invented for
 the IT Helpdesk Agent mini-project: people, systems, error codes, policies. Your agent has to
 answer from these documents, because general knowledge cannot.
 

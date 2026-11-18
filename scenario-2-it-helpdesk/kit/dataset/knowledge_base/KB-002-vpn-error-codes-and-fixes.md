@@ -27,7 +27,7 @@ NakhlaConnect is the only VPN client for Nakhla systems. Contractors do not use 
 | Gateway | Location | Who uses it |
 |---|---|---|
 | GW-1 | Jerusalem | Jerusalem HQ staff and remote staff assigned to GW-1 |
-| GW-2 | Bethlehem | Bethlehem office staff and remote staff assigned to GW-2 |
+| GW-2 | Ramallah | Ramallah office staff and remote staff assigned to GW-2 |
 | GW-3 | Jerusalem | Finance only (FIN-SECURE profile, managed by Security Operations) |
 
 You may switch between GW-1 and GW-2 in NakhlaConnect > Settings > Gateway. Finance users cannot change gateway.

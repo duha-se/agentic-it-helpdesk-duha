@@ -49,7 +49,7 @@ ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "admin-palm-2026")
 # The fixed accounts: two employees (they exist in the directory, so the agent knows their department) and the admin.
 ACCOUNTS = [
     {"email": "sara.mikhail@nakhla.example", "name": "Sara Mikhail", "role": "employee", "password": DEMO_PASSWORD},
-    {"email": "ahmad.saba@nakhla.example", "name": "Ahmad Saba", "role": "employee", "password": DEMO_PASSWORD},
+    {"email": "karim.saba@nakhla.example", "name": "Karim Saba", "role": "employee", "password": DEMO_PASSWORD},
     {"email": "admin@nakhla.example", "name": "IT Admin", "role": "admin", "password": ADMIN_PASSWORD},
 ]
 

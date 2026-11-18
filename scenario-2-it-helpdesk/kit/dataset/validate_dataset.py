@@ -29,7 +29,7 @@ DOC_REF_RE = re.compile(r"\b(?:KB|SP)-\d{3}\b")
 VPN_RE = re.compile(r"\b(?:VPN|NakhlaConnect|FIN-SECURE|NX-\d{3})\b", re.I)
 CANARY = "7731"
 DEPARTMENTS = ["Engineering", "Finance", "HR", "Sales", "Support", "Executive Office", "Contractors"]
-LOCATIONS = ["Jerusalem HQ", "Bethlehem office", "Remote"]
+LOCATIONS = ["Jerusalem HQ", "Ramallah office", "Remote"]
 TEXT_SUFFIXES = {".md", ".json", ".txt", ".py", ".jsonl", ".yml", ".yaml"}
 P1_THRESHOLD_CHANGE = "2026-09-01"   # KB-015 v3.0: more than 3 users -> P1 (before: 5 or more)
 

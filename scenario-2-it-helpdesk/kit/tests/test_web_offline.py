@@ -20,7 +20,7 @@ from app.chats import Chats  # noqa: E402
 from app.store import Store  # noqa: E402
 from app.web_service import WebError, WebService  # noqa: E402
 
-SARA, AHMAD, ADMIN = "sara.mikhail@nakhla.example", "ahmad.saba@nakhla.example", "admin@nakhla.example"
+SARA, KARIM, ADMIN = "sara.mikhail@nakhla.example", "karim.saba@nakhla.example", "admin@nakhla.example"
 PASSED = []
 
 
@@ -60,8 +60,8 @@ async def run():
         # --- accounts
         stored = " ".join(" ".join(r) for r in store.db.execute("SELECT salt, password_hash FROM users"))
         check("passwords are stored hashed, never in clear", config.DEMO_PASSWORD not in stored and config.ADMIN_PASSWORD not in stored)
-        sara, ahmad, admin = sign_in(web, SARA), sign_in(web, AHMAD), sign_in(web, ADMIN)
-        check("three fixed accounts: two employees and an admin", [sara["role"], ahmad["role"], admin["role"]] == ["employee", "employee", "admin"])
+        sara, karim, admin = sign_in(web, SARA), sign_in(web, KARIM), sign_in(web, ADMIN)
+        check("three fixed accounts: two employees and an admin", [sara["role"], karim["role"], admin["role"]] == ["employee", "employee", "admin"])
         check("wrong password and unknown email get the same answer",
               raises(401, lambda: web.login(SARA, "nope")) and raises(401, lambda: web.login("nobody@nakhla.example", "nope")))
         token, _ = web.login(SARA, config.DEMO_PASSWORD)
@@ -72,8 +72,8 @@ async def run():
         check("an expired token is not accepted", Accounts(store.db).user_for_token(expired) is None)
         locked = Accounts(store.db)
         for _ in range(5):
-            locked.login(AHMAD, "wrong")
-        check("five wrong passwords lock the account for a minute", locked.login(AHMAD, config.DEMO_PASSWORD) == (None, "locked"))
+            locked.login(KARIM, "wrong")
+        check("five wrong passwords lock the account for a minute", locked.login(KARIM, config.DEMO_PASSWORD) == (None, "locked"))
 
         # --- chats: continue one, start another, nobody else can open them
         first = await web.chat(sara, None, "My NakhlaConnect VPN shows NX-112 since this morning.")
@@ -86,7 +86,7 @@ async def run():
         other = await web.chat(sara, None, "NakhlaID says NID-423 when I try to sign in.")
         listing = web.list_conversations(sara)
         check("a new chat is separate and the newest is first", len(listing) == 2 and listing[0]["id"] == other["conversation"]["id"])
-        check("another employee sees none of it", web.list_conversations(ahmad) == [] and raises(404, lambda: web.conversation_detail(ahmad, cid)))
+        check("another employee sees none of it", web.list_conversations(karim) == [] and raises(404, lambda: web.conversation_detail(karim, cid)))
 
         async def refused(coro):
             try:
@@ -94,7 +94,7 @@ async def run():
             except WebError as error:
                 return error.status
             return None
-        check("an employee cannot write into someone else's chat", await refused(web.chat(ahmad, cid, "hello")) == 404)
+        check("an employee cannot write into someone else's chat", await refused(web.chat(karim, cid, "hello")) == 404)
         # Admin can chat; test RBAC directly on the agent's _ticket_lookup (the LLM stub won't produce ticket_lookup).
         # from app.state import Session, Turn
         # s_adm = Session("adm"); s_adm.role = "admin"
@@ -125,7 +125,7 @@ async def run():
         done = await web2.approve(sara, cid, pending["action_id"], True)
         check("approving writes one real ticket", len(hd.created) == 1 and done["message"]["meta"]["result"]["ticket_id"] == "IT-2001")
         check("the decision and the answer are saved", [m["content"] for m in web2.conversation_detail(sara, cid)["messages"]][-2] == "Approve")
-        check("nobody else can approve it", await refused(web2.approve(ahmad, cid, pending["action_id"], True)) == 404 and len(hd.created) == 1)
+        check("nobody else can approve it", await refused(web2.approve(karim, cid, pending["action_id"], True)) == 404 and len(hd.created) == 1)
 
         # --- the agent's own memory was cleaned up: the chat is rebuilt from the stored transcript
         store2.db.execute("DELETE FROM sessions")

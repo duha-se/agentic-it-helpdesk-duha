@@ -5,11 +5,11 @@
     {"id": "vpn", "name": "NakhlaConnect VPN", "status": "degraded",
      "components": [
        {"id": "GW-1", "name": "Gateway GW-1 (Jerusalem)", "status": "operational"},
-       {"id": "GW-2", "name": "Gateway GW-2 (Bethlehem)", "status": "degraded"},
+       {"id": "GW-2", "name": "Gateway GW-2 (Ramallah)", "status": "degraded"},
        {"id": "GW-3", "name": "Gateway GW-3 (Finance, FIN-SECURE)", "status": "operational"}
      ]},
     {"id": "nakhlaid", "name": "NakhlaID sign-in, SSO and NakhlaKey", "status": "operational", "components": []},
-    {"id": "wifi", "name": "Office Wi-Fi (Jerusalem HQ, Bethlehem office)", "status": "operational", "components": []},
+    {"id": "wifi", "name": "Office Wi-Fi (Jerusalem HQ, Ramallah office)", "status": "operational", "components": []},
     {"id": "mail", "name": "Nakhla Mail", "status": "operational", "components": []},
     {"id": "print", "name": "NakhlaPrint", "status": "operational", "components": []},
     {"id": "software", "name": "Software Center", "status": "operational", "components": []},
@@ -25,7 +25,7 @@
       "title": "VPN gateway GW-2 degraded",
       "started_at": "{TODAY}T06:40:00Z",
       "last_update": "{TODAY}T08:15:00Z",
-      "affected": "Employees connected through gateway GW-2 (Bethlehem office and remote staff assigned to GW-2).",
+      "affected": "Employees connected through gateway GW-2 (Ramallah office and remote staff assigned to GW-2).",
       "symptoms": "NakhlaConnect shows NX-503 or disconnects every few minutes.",
       "error_codes": ["NX-503"],
       "workaround": "In NakhlaConnect open Settings > Gateway and select GW-1 (Jerusalem), then reconnect. Finance users stay on GW-3 and are not affected.",

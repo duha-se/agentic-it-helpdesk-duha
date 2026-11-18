@@ -40,7 +40,7 @@ A laptop that was offline for more than 30 days must sync once (on Nakhla-Guest 
 ## Hardware problems
 
 - **Nakhla Dock D3** (USB-C dock): if monitors or USB devices are not detected, update the dock firmware from Software Center ("Nakhla Dock D3 firmware 2.4"), reconnect the cable, restart.
-- **Broken or damaged laptop:** a loaner laptop is available at the IT Service Desk counter (Jerusalem HQ floor 2, Bethlehem office floor 1). Ticket category `hardware`, priority **P3**, or **P2** if you cannot work at all and cannot collect a loaner.
+- **Broken or damaged laptop:** a loaner laptop is available at the IT Service Desk counter (Jerusalem HQ floor 2, Ramallah office floor 1). Ticket category `hardware`, priority **P3**, or **P2** if you cannot work at all and cannot collect a loaner.
 - **Swollen battery, smoke or burning smell:** stop using the device, unplug it, bring it to the Service Desk counter.
 - **Lost or stolen laptop:** security incident, category `security`, priority **P1** (SP-002).
 

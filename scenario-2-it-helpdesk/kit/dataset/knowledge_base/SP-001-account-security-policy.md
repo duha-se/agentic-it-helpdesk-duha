@@ -32,7 +32,7 @@ Since 2026-02-01 the IT Service Desk **does not reset passwords, read out tempor
 2. If self-service is impossible (for example you have no NakhlaKey device and no backup codes), an **assisted reset** is allowed only when all three conditions are met:
    - a ticket exists (category `identity_access`);
    - your **manager approves** the reset in that ticket;
-   - your identity is verified **in person** at an IT Service Desk counter (Jerusalem HQ floor 2, Bethlehem office floor 1) or by **video call** with your employee badge visible.
+   - your identity is verified **in person** at an IT Service Desk counter (Jerusalem HQ floor 2, Ramallah office floor 1) or by **video call** with your employee badge visible.
 3. For Executive Office staff, the Security Operations duty officer performs the verification.
 
 ## 3. Account lockout

@@ -78,7 +78,10 @@ def today() -> dt.date:
     value = (os.getenv("HELPDESK_TODAY") or "").strip()
     return dt.date.fromisoformat(value) if value else dt.date.today()
 
-def now_iso() -> str:
+def now_iso():
+    fixed = os.getenv("HELPDESK_TODAY")
+    if fixed:
+        return fixed if "T" in fixed else fixed + "T09:00:00Z"
     return dt.datetime.now(dt.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
 
 def _read_json(path: Path) -> Any:

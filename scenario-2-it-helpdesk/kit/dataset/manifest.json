@@ -1,7 +1,7 @@
 {
   "name": "Nakhla Systems IT support dataset",
   "dataset_version": "1.0",
-  "description": "Fictional IT knowledge base, ticket archive and directory of Nakhla Systems, a fictional ~400-person software company with offices in Jerusalem and Bethlehem. Built for the IT Helpdesk Agent mini-project.",
+  "description": "Fictional IT knowledge base, ticket archive and directory of Nakhla Systems, a fictional ~400-person software company with offices in Jerusalem and Ramallah. Built for the IT Helpdesk Agent mini-project.",
   "licence": "Fictional training data. Free to use, copy and modify. Any resemblance to real people, companies or systems is accidental. Domain nakhla.example is reserved and never resolves.",
   "counts": {
     "documents": 20,
@@ -991,7 +991,7 @@
       "name": "Fictional person.",
       "department": "One of the seven departments.",
       "title": "Job title.",
-      "location": "Jerusalem HQ | Bethlehem office | Remote.",
+      "location": "Jerusalem HQ | Ramallah office | Remote.",
       "device_os": "Company laptop OS (Contractors: personal device, not enrolled).",
       "vpn_client_version": "Installed NakhlaConnect version, null for Contractors.",
       "vpn_gateway": "GW-1 | GW-2 | GW-3 (Finance), null for Contractors.",

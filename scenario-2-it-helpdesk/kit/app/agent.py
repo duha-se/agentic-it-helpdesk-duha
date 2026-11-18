@@ -5,7 +5,7 @@ One chat turn goes through these roles:
   Rules (code)        -> department exceptions, known incident, priority and category
   Retriever (code)    -> chunks of current knowledge-base documents
   Resolver (model)    -> an answer written only from those chunks
-  Verifier (code+model) -> is every fact in the answer backed by the chunks?
+  Verifier (code+model) -> is every fact backed by the chunks, and do the chunks fit the problem?
   Ticket writer (model) -> the text of a ticket draft; code fills in the rest
 
 The model never writes to the helpdesk system. It can only propose a draft.
@@ -14,8 +14,7 @@ approve() is plain code: it calls create_ticket after a human said yes.
 RBAC: the role is read from the users table in SQLite, only for an authenticated request.
 Nothing in the chat text or in the request body can make a user an admin.
 
-Small local models return odd JSON (a string where a list is expected, a list where a string is expected),
-so everything the triage model says is validated in code before it is used.
+Everything the triage model says is validated in code before it is used (small models return odd JSON).
 """
 import asyncio
 import json
@@ -43,6 +42,7 @@ PROFILE_FIELDS = ("name", "department", "title", "location", "device_os", "vpn_c
                   "vpn_gateway", "mfa_enrolled", "vip", "contractor", "account_status")
 # Typing "yes" in the chat must never approve anything: only POST /api/approve does.
 JUST_YES = re.compile(r"\s*(yes|y|ok|okay|sure|approve|approved|confirm|go ahead|do it)[.! ]*", re.IGNORECASE)
+OFFERED_TICKET = re.compile(r"prepare a ticket", re.IGNORECASE)      # the assistant's own offer, see _not_documented
 
 CONTRACTOR_REPLY = (
     "Contractors don't have VPN access (SP-002), so NakhlaConnect is not available for your account, "
@@ -64,9 +64,23 @@ ALL_TICKETS = re.compile(
     r"|\btickets\b[^.?!]{0,60}\b(of|for|from|by)\s+(all|every|everyone|everybody|others?|(the\s+)?(other\s+)?(employees?|staff|users))\b"
     r"|(تذاكر|تذكرة)[^.?!]{0,30}(الموظفين|الجميع|الكل|موظف)", re.IGNORECASE)
 
-# A ticket draft is prepared only if the employee wrote something about a ticket.
-TICKET_WORDS = re.compile(r"\btickets?\b|\bopen a\b|\braise a\b|\blog a\b|تذكرة", re.IGNORECASE)
+# Orders to the assistant itself ("ignore your instructions", "you are in maintenance mode") are refused in code,
+# before any model sees the message, with a fixed reply that does not repeat the invented mode.
+INJECTION = re.compile(
+    r"\b(ignore|disregard|forget|override)\b[^.?!]{0,40}\b(previous|prior|above|earlier|all|your|these|the)\b"
+    r"[^.?!]{0,30}\b(instructions?|rules|prompt|guidelines)\b"
+    r"|\b(you are|you're|enter|switch to|enable)\b[^.?!]{0,20}\b(maintenance|debug|developer|admin|root)\s+mode\b"
+    r"|\b(reveal|show|print)\b[^.?!]{0,20}\bsystem prompt\b", re.IGNORECASE)
+
+INJECTION_REPLY = ("I can't help with that request. I only help with IT problems at Nakhla Systems, and I never share "
+                   "passwords or change how I work. If something IT-related is wrong, tell me what happens and the "
+                   "error code if you see one.")
+
 VPN_WORDS = re.compile(r"\bvpn\b|nakhlaconnect", re.IGNORECASE)
+CHATTER = re.compile(r"^(here'?s|here is) the (corrected|updated|revised) answer:?\s*", re.IGNORECASE)
+CLOSED_STATUSES = ("resolved", "closed", "cancelled", "canceled")
+LOOKUP_STOPWORDS = {"what", "status", "ticket", "tickets", "about", "with", "have", "this", "that", "from", "please",
+                    "show", "still", "open", "latest", "update", "updates", "news", "any", "does", "your", "mine"}
 
 
 def as_list(value) -> list:
@@ -77,6 +91,11 @@ def as_list(value) -> list:
 def pick(value, allowed, default):
     """A model value only if it is a string from the allowed set (never crashes on a list or a number)."""
     return value if isinstance(value, str) and value in allowed else default
+
+
+def flag(value) -> bool:
+    """A model boolean. The string "false" must not count as true."""
+    return value is True or (isinstance(value, str) and value.strip().lower() == "true")
 
 
 def is_error_code(text: str) -> bool:
@@ -229,6 +248,12 @@ class Agent:
         await self._identify(s, user, turn, authenticated)
         if ALL_TICKETS.search(message):                 # first: decided in code, whoever the sender is
             return await self._tenant_tickets(s, message, turn)
+        
+        if INJECTION.search(message):                   # decided in code: no model reads or repeats the order
+            log.warning("refused instruction-override attempt (session %s)", s.id)
+            self._audit(s, "refused_injection", None, message=one_line(message, 200))
+            return INJECTION_REPLY, "refused", []
+            
         if s.lookup_error == "employee_not_found" and s.role != "admin":
             return (f"I can't find {s.email} in the Nakhla directory. Please check the address "
                     "(it looks like name.surname@nakhla.example).", "unknown_employee", [])
@@ -237,7 +262,14 @@ class Agent:
             return ("Your ticket draft is waiting. Please press Approve to create it, or Reject to cancel. "
                     "Typing yes in the chat does not approve it.", s.state, [])
 
-        tri = await self._triage(s, message, turn)
+        previous = self._last_user_text(s)
+        if JUST_YES.fullmatch(message) and previous and self._offered_ticket(s):
+            # "yes" to the assistant's own offer: prepare the draft for the problem that was discussed.
+            tri = await self._triage(s, previous, turn)
+            tri.update(intent="problem", wants_ticket=True, needs_clarification=False)
+        else:
+            tri = await self._triage(s, message, turn)
+
         if tri["intent"] == "smalltalk":
             return ("Hi, I'm the Nakhla IT assistant. Tell me what is going wrong, and the error code if you "
                     "see one, and I'll help.", "greeting", [])
@@ -268,6 +300,9 @@ class Agent:
         history = await self.helpdesk.call("search_tickets", {"requester_email": s.email, "limit": 5}, turn)
         if history.get("ok"):                           # long-term memory: what this person asked before
             s.recent_tickets = [self._safe_ticket(t) for t in history.get("tickets", [])]
+            hidden = [t["ticket_id"] for t in s.recent_tickets if t["subject"] == "[hidden]"]
+            if hidden:                                  # text removed as a possible injection: leave a trace
+                self._audit(s, "injection_removed", None, tickets=hidden)
 
     @staticmethod
     def _safe_ticket(t: dict) -> dict:
@@ -299,6 +334,7 @@ class Agent:
             affected = 1
         steps = [one_line(str(x), 300) for x in as_list(data.get("tried_steps"))]
         intent = pick(data.get("intent"), INTENTS, "problem")
+        security = flag(data.get("security_incident"))
 
         # The error code decides the service, not the model.
         service = pick(data.get("service"), SERVICES, "other")
@@ -308,16 +344,16 @@ class Agent:
                 service = from_code
                 break
 
-        # A clear message is never "too vague": ask only about a VPN problem without a code,
-        # or about a very short message. A message with an error code is never vague.
+        # Ask only about a VPN problem without a code, or about a very short message.
+        # A message with an error code is never vague, and a security incident is never questioned first.
         short = len(message.split()) <= 10
         vpn_no_code = service == "vpn" and bool(VPN_WORDS.search(said)) and not codes
-        needs = bool(data.get("needs_clarification")) and not codes and (vpn_no_code or short)
+        needs = flag(data.get("needs_clarification")) and not codes and not security and (vpn_no_code or short)
 
-        # A ticket is drafted only if the employee wrote something about a ticket.
-        wants_ticket = bool(data.get("wants_ticket")) and intent == "problem" and bool(TICKET_WORDS.search(said))
+        wants_ticket = flag(data.get("wants_ticket")) and intent == "problem"
 
-        log.info("triage: intent=%s service=%s codes=%s clarify=%s ticket=%s", intent, service, codes, needs, wants_ticket)
+        log.info("triage: intent=%s service=%s codes=%s clarify=%s ticket=%s security=%s",
+                 intent, service, codes, needs, wants_ticket, security)
         return {
             "message": message,
             "intent": intent,
@@ -331,7 +367,7 @@ class Agent:
             "tried_steps": [x for x in steps if len(x) >= 3][:10],
             "impact": pick(data.get("impact"), rules.IMPACT_TO_PRIORITY, "workaround"),
             "affected_users": affected,
-            "security_incident": bool(data.get("security_incident")),
+            "security_incident": security,
             "category": pick(data.get("category"), rules.CATEGORIES, "other"),
         }
 
@@ -345,7 +381,8 @@ class Agent:
 
         # Missing information: ask first, do nothing else. KB-002 has a different fix per VPN code.
         needs_code = (service == "vpn" and bool(VPN_WORDS.search(self._history_text(s) + " " + message))
-                      and not codes and tri["impact"] != "request" and not tri["wants_ticket"])
+                      and not codes and tri["impact"] != "request" and not tri["wants_ticket"]
+                      and not tri["security_incident"])
         if tri["needs_clarification"] or needs_code:
             question = tri["clarifying_question"] or \
                 "Which error code does NakhlaConnect show, and what happens when you try to connect?"
@@ -368,7 +405,8 @@ class Agent:
                 return self._incident_reply(incident), "known_incident", ["KB-015"]
         else:
             hits = await self._retrieve(tri, employee, turn)
-        if tri["wants_ticket"] or route == "finance_vpn":
+        # A security incident (lost or stolen device, phishing victim) gets its ticket draft at once (SP-002 section 2).
+        if tri["wants_ticket"] or tri["security_incident"] or route == "finance_vpn":
             return await self._draft(s, tri, hits, route, status_ok, turn)
         return await self._answer(s, message, tri, hits, turn)
 
@@ -389,13 +427,22 @@ class Agent:
         turn.tool_calls.append({"tool": "search_kb", "ok": True, "ms": round((time.perf_counter() - started) * 1000)})
         return hits
 
+    # @staticmethod
+    # def _by_precedence(hits: list[Hit]) -> list[Hit]:
+    #     """Conflict rule in code: SP- beats KB-, authoritative beats not, newer beats older.
+    #     (Stable sorts, the weakest rule first, so the strongest rule decides the order.)"""
+    #     ordered = sorted(hits, key=lambda h: str(h.doc.last_updated), reverse=True)
+    #     ordered.sort(key=lambda h: not h.doc.authoritative)
+    #     ordered.sort(key=lambda h: not h.doc.id.startswith("SP-"))
+    #     return ordered
+
     async def _answer(self, s: Session, message: str, tri: dict, hits: list[Hit], turn: Turn):
         unknown = [c for c in tri["error_codes"] if c not in self.index.known_codes]
         sources = self.index.relevant(hits)
         if unknown or not sources:                     # the KB has no answer: say so, do not guess
             return self._not_documented(unknown), "not_documented", []
 
-        text, why = await self._verified_answer(s, message, sources, turn)
+        text, why = await self._verified_answer(s, message, sources, tri["error_codes"], turn)
         if text is None:
             return self._not_documented([], unverified=why == "unverified"), "not_documented", []
 
@@ -408,10 +455,13 @@ class Agent:
                      f"({related['status']}, {related['priority']}).")
         return text, "answered", cited
 
-    async def _verified_answer(self, s: Session, message: str, sources: list[Hit], turn: Turn):
-        """Write the answer, check it, and try once more if the check fails."""
+    async def _verified_answer(self, s: Session, message: str, sources: list[Hit], codes: list[str], turn: Turn):
+        """Write the answer, check it, and try once more if the check fails.
+        If both attempts fail but a source has the exact row for the error code, that row is the answer."""
         source_text = self._sources_text(sources)
         ids = {h.doc.id for h in sources}
+        context = (f"EMPLOYEE PROFILE:\n{json.dumps(profile_view(s.employee))}\n\n"
+                   f"WHAT THE EMPLOYEE WROTE:\n{self._history_text(s)}\nEmployee: {message}")
         corpus = "\n".join([source_text, self._history_text(s), message,
                             json.dumps(profile_view(s.employee)), self._tickets_text(s)])
         feedback: list[str] | None = None
@@ -420,32 +470,60 @@ class Agent:
             prompt = self._resolver_input(s, message, source_text, feedback)
             prompt += (f"\n\nEnd your answer by citing the source ids you used in square brackets, "
                        f"only from this list: {id_list}. Example: [{sorted(ids)[0]}]")
-            text = (await self.llm.complete(prompts.RESOLVER, prompt, turn, max_tokens=500)).strip()
+            text = (await self.llm.complete(prompts.RESOLVER, prompt, turn, max_tokens=700)).strip()
+            text = CHATTER.sub("", text)
             if text.upper().startswith("NOT_DOCUMENTED"):
                 log.info("resolver answered NOT_DOCUMENTED (sources: %s)", sorted(ids))
                 return None, "not_documented"
             problems = guardrails.reply_problems(text, corpus=corpus, retrieved_ids=ids)
-            if problems and attempt == 2 and all("must cite" in p for p in problems):
-                text += f" [{sources[0].doc.id}]"
-                problems = guardrails.reply_problems(text, corpus=corpus, retrieved_ids=ids)
             if not problems:
-                problems = await self._model_check(text, source_text, turn)
+                problems, applies = await self._model_check(text, source_text, context, turn)
+                if applies is False and not codes:     # the nearest article is about something else
+                    log.info("verifier: sources do not fit the problem (sources: %s)", sorted(ids))
+                    return None, "not_applicable"
             if not problems:
                 return text, "ok"
             log.warning("answer rejected on attempt %d: %s", attempt, problems)
             feedback = problems
+        row = self._code_row(sources, codes, corpus, ids)
+        if row:
+            log.info("both attempts rejected; answering with the documented row for %s", codes)
+            return row, "code_row"
         return None, "unverified"
 
-    async def _model_check(self, text: str, source_text: str, turn: Turn) -> list[str]:
-        raw = await self.llm.complete(prompts.VERIFIER, f"SOURCES:\n{source_text}\n\nREPLY:\n{text}",
-                                      turn, json_mode=True, max_tokens=300, model=config.FAST_MODEL)
+    @staticmethod
+    def _code_row(sources: list[Hit], codes: list[str], corpus: str, ids: set[str]) -> str | None:
+        """The knowledge-base table row that holds the exact error code, with its own citation."""
+        for code in codes:
+            for h in sources:
+                for line in h.chunk.text.splitlines():
+                    if code not in line.upper() or not line.strip().startswith("|"):
+                        continue
+                    cells = [c.strip(" `*") for c in line.strip().strip("|").split("|")]
+                    if len(cells) < 2 or code not in cells[0].upper():
+                        continue
+                    fix = " ".join(cells[2:])
+                    text = f"{cells[0]}: {cells[1]}." + (f" What to do: {fix}" if fix else "")
+                    text += f" [{h.doc.id}]"
+                    if not guardrails.reply_problems(text, corpus=corpus, retrieved_ids=ids):
+                        return text
+        return None
+
+    async def _model_check(self, text: str, source_text: str, context: str, turn: Turn):
+        """Returns (problems, applies). applies is False only if the verifier says the sources fit another problem."""
+        raw = await self.llm.complete(
+            prompts.VERIFIER, f"SOURCES:\n{source_text}\n\n{context}\n\nREPLY:\n{text}",
+            turn, json_mode=True, max_tokens=300, model=config.FAST_MODEL)
         data = parse_json(raw)
-        if isinstance(data, dict) and data.get("supported") is False:
+        if not isinstance(data, dict):
+            return [], None
+        applies = False if data.get("applies") is False else None
+        if data.get("supported") is False:
             problems = [str(p) for p in as_list(data.get("problems")) if str(p).strip()]
-            if problems:                      # a rejection must say what is wrong
-                return problems
+            if problems:                               # a rejection must say what is wrong
+                return problems, applies
             log.warning("verifier said unsupported without naming a problem; ignored")
-        return []    
+        return [], applies
 
     @staticmethod
     def _not_documented(unknown: list[str], unverified: bool = False) -> str:
@@ -485,9 +563,12 @@ class Agent:
 
         steps = writer["attempted_steps"] or tri["tried_steps"]
         if not steps:
-            steps = (["Not applicable: Finance VPN problems go straight to Security Operations (KB-016)."]
-                     if route == "finance_vpn" else
-                     ["No troubleshooting steps tried yet; the employee asked for a ticket."])
+            if route == "finance_vpn":
+                steps = ["Not applicable: Finance VPN problems go straight to Security Operations (KB-016)."]
+            elif tri["wants_ticket"]:
+                steps = ["No troubleshooting steps tried yet; the employee asked for a ticket."]
+            else:
+                steps = ["No troubleshooting steps tried yet; the employee reported a security incident."]
 
         if route == "finance_vpn":
             refs = ["KB-002", "KB-016"]
@@ -584,7 +665,7 @@ class Agent:
         return f"All tickets ({len(tickets)}):\n" + "\n".join(lines), "answered", []
 
     async def _ticket_lookup(self, s: Session, message: str, tri: dict, turn: Turn):
-        ids = guardrails.TICKET_ID.findall(message.upper())     
+        ids = guardrails.TICKET_ID.findall(message.upper())     # "it-2001" must work too
         # The model may say "others" even if the regex missed it: same single decision point.
         if tri["ticket_scope"] == "others" and not ids:
             return await self._tenant_tickets(s, message, turn)
@@ -602,8 +683,16 @@ class Agent:
                 return "I couldn't read your tickets right now. Please try again in a moment.", "error", []
             if not s.recent_tickets:
                 return "I don't see any tickets for you yet.", "answered", []
+
+            # If one of the open tickets is the one the employee means, show its latest note too.
+            detail = ""
+            match = self._match_ticket(s, message, tri["error_codes"])
+            if match and match.get("ticket_id"):
+                found = await self.helpdesk.call("get_ticket", {"ticket_id": match["ticket_id"]}, turn)
+                if found.get("ok") and found["ticket"].get("requester_email") == s.email:
+                    detail = self._ticket_text(s, found["ticket"]) + "\n\n"
             lines = [f"- {t['ticket_id']} ({t['status']}, {t['priority']}): {t['subject']}" for t in s.recent_tickets]
-            return "Your most recent tickets:\n" + "\n".join(lines) + stale, "answered", []
+            return detail + "Your most recent tickets:\n" + "\n".join(lines) + stale, "answered", []
 
         found = await self.helpdesk.call("get_ticket", {"ticket_id": ids[0]}, turn)
         if not found.get("ok"):
@@ -614,9 +703,16 @@ class Agent:
         if ticket.get("requester_email") != s.email and s.role != "admin":
             self._audit(s, "refused_other_tickets", None, ticket_id=ids[0])
             return f"{ids[0]} belongs to someone else, so I can't show it. I can only share your own tickets.", "refused", []
+        return self._ticket_text(s, ticket), "answered", []
 
+    def _ticket_text(self, s: Session, ticket: dict) -> str:
+        """One ticket as text: status, resolution and the latest note. Text removed as an injection is audited."""
         def text(value: str) -> str:
-            return guardrails.clean_untrusted(one_line(value, 300), ticket["ticket_id"])
+            raw = one_line(value, 300)
+            clean = guardrails.clean_untrusted(raw, ticket["ticket_id"])
+            if clean != raw:
+                self._audit(s, "injection_removed", None, ticket_id=ticket["ticket_id"])
+            return clean
 
         lines = [f"{ticket['ticket_id']}: {text(ticket['subject'])}",
                  f"Status: {ticket['status']} | Priority: {ticket['priority']} | Team: {ticket['assigned_team']}"]
@@ -624,7 +720,25 @@ class Agent:
             lines.append(f"Resolution: {text(ticket['resolution'])}")
         if ticket.get("notes"):
             lines.append(f"Last note: {text(ticket['notes'][-1].get('text', ''))}")
-        return "\n".join(lines), "answered", []
+        return "\n".join(lines)
+
+    @staticmethod
+    def _match_ticket(s: Session, message: str, codes: list[str]) -> dict | None:
+        """The employee's ticket the question is about: same error code or shared words, active tickets first."""
+        words = {w for w in re.findall(r"[a-z0-9]{4,}", message.lower()) if w not in LOOKUP_STOPWORDS}
+        best, best_score = None, 0
+        for t in s.recent_tickets:
+            haystack = f"{t.get('subject', '')} {t.get('text', '')}"
+            score = 3 * sum(1 for c in codes if c in haystack.upper())
+            score += len(words & set(re.findall(r"[a-z0-9]{4,}", haystack.lower())))
+            if score and str(t.get("status", "")).lower() not in CLOSED_STATUSES:
+                score += 1
+            if score > best_score:
+                best, best_score = t, score
+        if best:
+            return best
+        active = [t for t in s.recent_tickets if str(t.get("status", "")).lower() not in CLOSED_STATUSES]
+        return active[0] if len(active) == 1 else None
 
     # ------------------------------------------------------------------ small helpers
 
@@ -634,6 +748,16 @@ class Agent:
                     "Please try again in a minute. Nothing was created.", "directory_unavailable", [])
         return ("Before I go on, what is your work email (name.surname@nakhla.example)? "
                 "I need it to apply the right department rules.", "needs_info", [])
+
+    @staticmethod
+    def _offered_ticket(s: Session) -> bool:
+        """Did the assistant's last reply offer to prepare a ticket?"""
+        last = next((m["content"] for m in reversed(s.history) if m["role"] == "assistant"), "")
+        return bool(OFFERED_TICKET.search(last))
+
+    @staticmethod
+    def _last_user_text(s: Session) -> str:
+        return next((m["content"] for m in reversed(s.history) if m["role"] == "user"), "")
 
     @staticmethod
     def _related_open_ticket(s: Session, codes: list[str]) -> dict | None:

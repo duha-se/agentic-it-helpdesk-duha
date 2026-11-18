@@ -32,7 +32,7 @@ Reconnect three or four times. It usually works on the fourth try. Switching to 
 
 Disconnect the VPN while you download big files, then reconnect. Saves a lot of time.
 
-## Wi-Fi at the Bethlehem office
+## Wi-Fi at the Ramallah office
 
 If Nakhla-Corp is slow, connect the laptop to Nakhla-IoT. It is almost empty.
 

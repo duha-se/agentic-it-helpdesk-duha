@@ -34,7 +34,7 @@
 ## The client's problem
 
 Nakhla Systems is a 400-person software company (fictional) with offices in
-Jerusalem and Bethlehem and many remote staff. Five IT engineers spend their days
+Jerusalem and Ramallah and many remote staff. Five IT engineers spend their days
 on the same questions: the VPN, passwords, MFA, a laptop that won't enrol. The
 answers exist in 20 knowledge-base articles and policies, but some of those are
 **out of date**, some **contradict each other**, and one community page has been

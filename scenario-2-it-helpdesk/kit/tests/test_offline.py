@@ -217,7 +217,7 @@ async def run():
 
     # --- S2-06 rejection
     agent, llm, hd = await make_agent()
-    r = await say(agent, "f", "Software Center fails with SWC-2001. Please open a ticket for it.", "ahmad.saba@nakhla.example")
+    r = await say(agent, "f", "Software Center fails with SWC-2001. Please open a ticket for it.", "karim.saba@nakhla.example")
     pa = r["pending_action"]
     check("S2-06 software P3 draft", pa["payload"]["category"] == "software" and pa["payload"]["priority"] == "P3", pa["payload"])
     r = await agent.approve("f", pa["action_id"], False)
@@ -301,7 +301,7 @@ async def run():
 
     # --- "my tickets" is read again, so a ticket created in this session shows up
     agent, llm, hd = await make_agent()
-    draft = (await say(agent, "mine", "Software Center fails with SWC-2001. Please open a ticket.", "ahmad.saba@nakhla.example"))["pending_action"]
+    draft = (await say(agent, "mine", "Software Center fails with SWC-2001. Please open a ticket.", "karim.saba@nakhla.example"))["pending_action"]
     await agent.approve("mine", draft["action_id"], True)
     r = await say(agent, "mine", "show me my tickets")
     check("my tickets includes the one just created", "IT-2001" in r["reply"], r["reply"])
@@ -311,14 +311,14 @@ async def run():
     r = await say(agent, "r", "NID-423 when I try to sign in", "nobody@nakhla.example")
     check("unknown email is refused politely", r["state"] == "unknown_employee" and not hd.created)
     agent, llm, hd = await make_agent()
-    await say(agent, "s", "Software Center fails with SWC-2001. Please open a ticket.", "ahmad.saba@nakhla.example")
+    await say(agent, "s", "Software Center fails with SWC-2001. Please open a ticket.", "karim.saba@nakhla.example")
     r = await say(agent, "s", "yes")
     check("typing yes does not approve", not hd.created and r["pending_action"] is not None)
 
     # --- A new draft replaces the old one; the old action id no longer works
     agent, llm, hd = await make_agent()
-    first = (await say(agent, "t", "Software Center fails with SWC-2001. Please open a ticket.", "ahmad.saba@nakhla.example"))["pending_action"]
-    second = (await say(agent, "t", "Software Center fails with SWC-2001. Please open a ticket.", "ahmad.saba@nakhla.example"))["pending_action"]
+    first = (await say(agent, "t", "Software Center fails with SWC-2001. Please open a ticket.", "karim.saba@nakhla.example"))["pending_action"]
+    second = (await say(agent, "t", "Software Center fails with SWC-2001. Please open a ticket.", "karim.saba@nakhla.example"))["pending_action"]
     r = await agent.approve("t", first["action_id"], True)
     check("replaced draft cannot be approved", not hd.created and "can't find a draft" in r["reply"], r["reply"])
     r = await agent.approve("t", second["action_id"], True)
@@ -361,7 +361,7 @@ async def run():
         db = Path(folder) / "agent.db"
         helpdesk = FakeHelpdesk()                       # the "ticket system" keeps running while the agent restarts
         agent1, _, _ = await make_agent(Store(db), helpdesk)
-        draft = (await say(agent1, "z", "Software Center fails with SWC-2001. Please open a ticket.", "ahmad.saba@nakhla.example"))["pending_action"]
+        draft = (await say(agent1, "z", "Software Center fails with SWC-2001. Please open a ticket.", "karim.saba@nakhla.example"))["pending_action"]
         agent2, _, _ = await make_agent(Store(db), helpdesk)          # restart no. 1
         check("restored session keeps the draft", agent2.sessions == {} and (await agent2.approve("z", draft["action_id"], True))["result"]["ticket_id"] == "IT-2001")
         check("one ticket after the restart", len(helpdesk.created) == 1)
@@ -371,7 +371,7 @@ async def run():
         check("the approval log tells the story", Store(db).events(draft["action_id"]) ==
               ["draft_created", "ticket_created", "duplicate_approval"], Store(db).events(draft["action_id"]))
         r = await say(agent3, "z", "NakhlaID says NID-423 when I try to sign in.")      # no email in the request: the saved one is used
-        check("the saved session still knows who is talking", agent3.sessions["z"].email == "ahmad.saba@nakhla.example")
+        check("the saved session still knows who is talking", agent3.sessions["z"].email == "karim.saba@nakhla.example")
 
     print(f"\n{len(PASSED)} checks passed.")
 
