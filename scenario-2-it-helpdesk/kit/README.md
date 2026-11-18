@@ -1,8 +1,8 @@
 <!-- JHF-BRAND -->
 <div align="center" style="padding:28px 20px; background:#ffffff; border:2px solid #e0e0e0; border-radius:12px;">
   <p style="margin:0 0 16px 0;">
-    <img src="../assets/jhf-logo.png" alt="Jerusalem High-Tech Foundry (JHF)" height="54" style="vertical-align:middle; margin:0 22px;" />
-    <img src="../assets/comcec-logo.png" alt="COMCEC - Cooperation for Development" height="72" style="vertical-align:middle; margin:0 22px;" />
+    <img src="../../assets/jhf-logo.png" alt="Jerusalem High-Tech Foundry (JHF)" height="54" style="vertical-align:middle; margin:0 22px;" />
+    <img src="../../assets/comcec-logo.png" alt="COMCEC - Cooperation for Development" height="72" style="vertical-align:middle; margin:0 22px;" />
   </p>
   <h1 style="color:#1a3c5e; margin:6px 0;">Agentic AI Bootcamp</h1>
   <h3 style="color:#0078d4; margin:4px 0; font-weight:600;">The Ship Week &middot; Brief 2 &mdash; The IT Helpdesk Agent</h3>
@@ -72,13 +72,13 @@ Agent      Done. Your ticket is IT-2001. Security Operations will contact you.
 **What a working solution looks like** (the kit's UI starter, driven by a working agent):
 
 <p align="center">
-  <img src="../visuals/screens/s2-grounded-answer.jpg" alt="A grounded answer that cites the current VPN article and calls the outdated guide outdated, with the sources panel and tool calls" width="49%"/>
-  <img src="../visuals/screens/s2-ticket-draft.jpg" alt="A ticket draft for a Finance employee: category security, priority P2, KB references, Approve and Reject" width="49%"/>
+  <img src="../../visuals/screens/s2-grounded-answer.jpg" alt="A grounded answer that cites the current VPN article and calls the outdated guide outdated, with the sources panel and tool calls" width="49%"/>
+  <img src="../../visuals/screens/s2-ticket-draft.jpg" alt="A ticket draft for a Finance employee: category security, priority P2, KB references, Approve and Reject" width="49%"/>
 </p>
 
 ## The blueprint
 
-<p align="center"><img src="../visuals/s2-architecture.png" alt="Scenario 2 architecture: ingestion pipeline from the knowledge base to a vector store, then the chat path through triage, retrieval, answer, verify and escalate, with the helpdesk MCP server in front of the simulated ticket system" width="960"/></p>
+<p align="center"><img src="../../visuals/s2-architecture.png" alt="Scenario 2 architecture: ingestion pipeline from the knowledge base to a vector store, then the chat path through triage, retrieval, answer, verify and escalate, with the helpdesk MCP server in front of the simulated ticket system" width="960"/></p>
 
 Two pipelines, and you build both:
 
@@ -89,7 +89,7 @@ Two pipelines, and you build both:
 
 ### How a request gets resolved
 
-<p align="center"><img src="../visuals/s2-resolution-flow.png" alt="Decision flow: known incident? missing context? retrieve, apply precedence, enough evidence? answer with citations; otherwise offer escalation; draft, approve, create ticket" width="960"/></p>
+<p align="center"><img src="../../visuals/s2-resolution-flow.png" alt="Decision flow: known incident? missing context? retrieve, apply precedence, enough evidence? answer with citations; otherwise offer escalation; draft, approve, create ticket" width="960"/></p>
 
 ## What's in your kit
 
@@ -203,8 +203,8 @@ is enough; Chroma or LlamaIndex are fine if you can explain them.
 
 <div align="center" style="padding:14px; border-top:2px solid #0078d4; margin-top:34px;">
   <p style="margin:0 0 8px 0;">
-    <img src="../assets/jhf-logo.png" alt="JHF" height="28" style="vertical-align:middle; margin:0 14px; background:#ffffff; padding:6px 10px; border-radius:6px;" />
-    <img src="../assets/comcec-logo.png" alt="COMCEC" height="40" style="vertical-align:middle; margin:0 14px; background:#ffffff; padding:6px 10px; border-radius:6px;" />
+    <img src="../../assets/jhf-logo.png" alt="JHF" height="28" style="vertical-align:middle; margin:0 14px; background:#ffffff; padding:6px 10px; border-radius:6px;" />
+    <img src="../../assets/comcec-logo.png" alt="COMCEC" height="40" style="vertical-align:middle; margin:0 14px; background:#ffffff; padding:6px 10px; border-radius:6px;" />
   </p>
   <p style="color:#888; font-size:13px; margin:0;">
     <strong>JHF Agentic AI Bootcamp</strong> &mdash; The Ship Week · Brief 2<br/>
